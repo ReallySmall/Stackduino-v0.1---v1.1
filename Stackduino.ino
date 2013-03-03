@@ -1,5 +1,5 @@
 /*
- STACKDUINO v1.6 BETA
+ Stackduino
  
  A sketch to drive an Arduino based MacroPhotography Focus Stacking Controller
  http://www.flickr.com/photos/reallysmall/sets/72157632341602394/

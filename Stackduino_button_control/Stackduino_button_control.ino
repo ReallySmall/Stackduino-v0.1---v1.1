@@ -1,5 +1,5 @@
 /*
- Stackduino
+ STACKDUINO
  
  A sketch to drive an Arduino based MacroPhotography Focus Stacking Controller
  http://www.flickr.com/photos/reallysmall/sets/72157632341602394/
@@ -27,28 +27,30 @@ LiquidCrystal lcd(8, 9, 10, 11, 12, 13); //lcd pins
 #define ENC_B A1
 #define ENC_PORT PINC
 
-int steps = 10; //number of microns stepper motor should make between pictures, default 12
-int numPictures = 10; //total number of pictures to take
-int picCounter = 0; //count of number of pictures taken so far
-int setPause = 5000; //time in millis to wait for camera to take picture
-int returnToStart = 2; //whether camera/ subject is returned to starting position at end of stack, controlled by returnNum
-int manualSpeedXaxis = 0; //delay between steps in manual mode, governing motor speed
-int joyStickreading = 0; //current analogue reading of joystick
-int rotaryCounter = 1; //which menu item to display when turning rotary encoder
-int unitofMeasure = 1; //whether to use microns, mm or cm when making steps
-int uomMultiplier = 1; //multiplier to factor into step signals (1, 1000 or 10,000) depending on unit of measure used
-int stepSpeed = 2000; //delay in microseconds between motor steps, governing motor speed in stack
-int lcdloopCounter = 0; //count number of loops to periodically update lcd
-
+//other digital pins
 int pushButton = 2;  //start/ stop stack button
 int rotarypushButton = 3; //select/ unselect menu item button
 int dir = 4; //stepper motor direction
 int doStep = 5; //send step signal to stepper motor
 int focus = 6; //send an autofocus signal to the camera
 int shutter = 7; //send a shutter signal to the camera
-int forwardControl = 16; //for manual positioning
-int backwardControl = 17; //for manual positioning
-int limitSwitches = 19; //limit switches to stop stepping if end of travel on rail is reached at either end
+int forwardControl = A2; //for manual positioning
+int backwardControl = A5; //for manual positioning
+int limitSwitches = A4; //limit switches to stop stepping if end of travel on rail is reached at either end
+
+//vars
+int steps = 10; //default number of microns stepper motor should make between pictures
+int numPictures = 10; //default total number of pictures to take
+int picCounter = 0; //count of number of pictures taken so far
+int setPause = 5000; //default time in millis to wait for camera to take picture
+int returnToStart = 2; //whether camera/ subject is returned to starting position at end of stack, controlled by returnNum
+int manualSpeedXaxis = 0; //delay between steps in manual mode, governing motor speed
+int rotaryCounter = 1; //which menu item to display when turning rotary encoder
+int unitofMeasure = 1; //whether to use microns, mm or cm when making steps
+int uomMultiplier = 1; //multiplier to factor into step signals (1, 1000 or 10,000) depending on unit of measure used
+int stepSpeed = 2000; //delay in microseconds between motor steps, governing motor speed in stack
+int lcdloopCounter = 0; //count number of loops to periodically update lcd
+int encoderCounter = 0; //count pulses from encoder
 
 //pushButton toggle
 volatile int buttonState = HIGH; //the current state of the output pin
@@ -78,7 +80,6 @@ void setup()
   pinMode(rotarypushButton, INPUT);
   pinMode(ENC_A, INPUT);
   pinMode(ENC_B, INPUT);
-  pinMode(limitSwitches, INPUT);
   pinMode(dir, OUTPUT);   
   pinMode(doStep, OUTPUT);    
   pinMode(focus, OUTPUT); 
@@ -99,7 +100,7 @@ void setup()
 
   lcd.setCursor(0, 0);
   lcd.print("Stackduino");
-  delay(3000);
+  delay(2000);
   lcd.clear();
 
 }
@@ -110,7 +111,7 @@ void loop(){
 
     lcdloopCounter++;
 
-    if (lcdloopCounter >= 40){
+    if (lcdloopCounter >= 40){ //periodically refresh lcd display
 
       lcd.setCursor(0, 0);
       lcd.print("End of travel!  ");
@@ -134,9 +135,27 @@ void loop(){
 
       if (rbbuttonState == HIGH) { //use encoder to scroll through menu of settings
 
-        rotaryCounter = constrain(rotaryCounter, 0, 7); //limits choice to specified range
+        int8_t tmpdata = read_encoder(); //counts encoder pulses and registers only every nth pulse to adjust feedback sensitivity
+        if(tmpdata){
+          if(tmpdata == 1){
+            encoderCounter++;
+          }
 
-        rotaryCounter += read_encoder (); //use encoder reading function to get rotaryCounter value
+          if(encoderCounter == 2){ //change this number to adjust encoder sensitivity
+            rotaryCounter++;
+            encoderCounter = 0;
+          }
+
+          if(tmpdata == -1){
+            encoderCounter--;
+          }
+          if(encoderCounter == -2){ //change this number to adjust encoder sensitivity
+            rotaryCounter--;
+            encoderCounter = 0;
+          }
+        }
+
+        rotaryCounter = constrain(rotaryCounter, 0, 7); //limits choice to specified range
 
         if (rotaryCounter == 7){ //when counter value exceeds number of menu items
           rotaryCounter = 1; //reset it to 1 again to create a looping navigation
@@ -348,7 +367,7 @@ void loop(){
         }
 
         break; 
-        
+
       }
     } //end of setup menu section
 
@@ -378,64 +397,41 @@ void loop(){
 
         delay(500);
 
-          digitalWrite(dir, LOW); //set the stepper direction to clockwise
-          delay(100);
+        digitalWrite(dir, LOW); //set the stepper direction to clockwise
+        delay(100);
 
-          int i = 0; //counter for motor steps
-          while (i < steps * 8 * uomMultiplier && digitalRead(limitSwitches) == HIGH){
-            stepSignal();
-            i++;
-          }
-          i = 0; //reset counter
+        int i = 0; //counter for motor steps
+        while (i < steps * 16 * uomMultiplier && digitalRead(limitSwitches) == HIGH){ //adjust the number in this statement to tune distance travelled on your setup
+          stepSignal();
+          i++;
+        }
+        i = 0; //reset counter
 
-          if (digitalRead(limitSwitches) == LOW){ //stop motor and reverse if limit switch hit
-            retreat();
-            break;
-          }    
-
-          if (buttonState == HIGH){ //if the Start/Stop stack button has been pressed, stop the stack even if not complete
-            break;
-          }
-
-            lcd.clear();
-            lcd.print("Pause for image");
-            lcd.setCursor(0, 1);
-            lcd.print("(");
-            lcd.print ((setPause / 1000), DEC);
-            lcd.print(" seconds)");
-
-            digitalWrite(focus, HIGH); //trigger camera autofocus - camera may not take picture in some modes if this is not triggered first
-            digitalWrite(shutter, HIGH); //trigger camera shutter
-
-            delay(200); //small delay needed for camera to process above signals
-
-            digitalWrite(shutter, LOW); //switch off camera trigger signal
-            digitalWrite(focus, LOW); //switch off camera focus signal
-
-            delay(setPause); //pause to allow for camera to take picture with 2 sec mirror lockup and to allow flashes to recharge before next shot
-
-            lcd.clear();
+        if (digitalRead(limitSwitches) == LOW){ //stop motor and reverse if limit switch hit
+          retreat();
+          break;
+        }    
 
         if (buttonState == HIGH){ //if the Start/Stop stack button has been pressed, stop the stack even if not complete
           break;
+        }
 
+        takePicture(); //send signal to camera to take picture
+        
+        if (buttonState == HIGH){ //if the Start/Stop stack button has been pressed, stop the stack even if not complete
+          break;
         }
       } 
-
       lcd.setCursor(0, 0);
       lcd.print("Stack finished");
       delay(2000);
       lcd.clear(); 
-
-
       if (returnToStart == 1){   
         digitalWrite(dir, HIGH); //set the stepper direction to anti-clockwise
         delay(100);
         lcd.setCursor(0, 0);
         lcd.print("<< Returning..."); 
-
         int returnSteps = steps * picCounter;
-
         lcd.setCursor(0, 1);
         lcd.print (returnSteps);
         if (unitofMeasure==1){
@@ -449,65 +445,62 @@ void loop(){
         }
 
         int i = 0; //counter for motor steps
-        while (i < returnSteps * 8 * uomMultiplier && digitalRead(limitSwitches) == HIGH){
+        while (i < returnSteps * 16 * uomMultiplier && digitalRead(limitSwitches) == HIGH){
           stepSignal();
           i++;
         }
         i = 0; //reset counter
-
         if (digitalRead(limitSwitches) == LOW){ //stop motor and reverse if limit switch hit
           retreat();
         }  
-
         lcd.clear();
-
       }
-
-      rotaryCounter = 1; //set back to first screen of menu
+      rotaryCounter = 1; //set menu option display to first
       picCounter = 0; //reset pic counter
       buttonState = HIGH; //return to menu options
-
     } 
   }
 }
-//end of main code
 
-void buttonChange(){ //function to read the current state of the push button
+/* FUNCTION - RETURNS CURRENT STATE OF MAIN PUSH BUTTON */
+void buttonChange(){
 
   reading = digitalRead(pushButton);
-
   if (reading == LOW && previous == HIGH && millis() - time > debounce) {
     if (buttonState == HIGH)
       buttonState = LOW;
     else
       buttonState = HIGH;
-
     time = millis();    
   }
 
   previous = reading;
+
 }  
 
-
-void rotarybuttonChange(){ //function to read the current state of the push button
+/* FUNCTION - RETURNS CURRENT STATE OF ROTARY ENCODER'S PUSH BUTTON */
+void rotarybuttonChange(){
 
   rbreading = digitalRead(rotarypushButton);
-
   if (rbreading == LOW && rbprevious == HIGH && millis() - rbtime > rbdebounce) {
     if (rbbuttonState == HIGH)
       rbbuttonState = LOW;
     else
       rbbuttonState = HIGH;
-
     rbtime = millis();    
   }
 
   rbprevious = rbreading;
+
 } 
 
-/* returns change in encoder state (-1,0,1) */
-int8_t read_encoder()
-{
+/* FUNCTION - RETURNS CHANGE IN ENCODER STATE */
+
+
+
+/* FUNCTION - RETURNS CHANGE IN ENCODER STATE */
+int8_t read_encoder(){
+
   static int8_t enc_states[] = { 
     0,1,-1,0,-1,0,0,1,1,0,0,-1,0,-1,1,0
   };
@@ -516,12 +509,13 @@ int8_t read_encoder()
   old_AB <<= 2; //remember previous state
   old_AB |= ( ENC_PORT & 0x03 ); //add current state
   return ( enc_states[( 0x0f & old_AB )]);
+
 }
 
+/* FUNCTION - PULLS CARRIAGE BACK FROM TRIPPED LIMIT SWITCH */
 void retreat(){
 
   digitalToggle(dir); //reverse motor direction to move away from limitswitch
-
   lcd.setCursor(0, 0);
   lcd.print("End of travel!  ");
   lcd.setCursor(0, 1);
@@ -534,45 +528,66 @@ void retreat(){
 
   digitalToggle(dir); //reset motor back to original direction once limit switch is no longer pressed
   lcd.clear();
+
 }
 
+/* FUNCTION - MOVES CARRIAGE BACKWARD AND FORWARD USING PUSH BUTTONS */
 void manualControl(){
-  
- if(digitalRead(forwardControl == LOW) && digitalRead(backwardControl == HIGH)){ //if only forward button pressed
-    digitalWrite(dir, LOW); //set stepper direction to forward
-    stepSignal(); //move forward
- }
- 
- if(digitalRead(backwardControl == LOW) && (digitalRead(forwardControl == HIGH){ //if only backward button pressed
-    digitalWrite(dir, HIGH); //set stepper direction to forward
-    stepSignal(); //move backward
- }
-  
+
+  while (digitalRead(forwardControl) == LOW) {
+
+    int i;
+    digitalWrite(dir, LOW); 
+    for (i = 0; i<1; i++)
+    {
+      stepSignal(); //move forward
+    }
+  }
+
+  while (digitalRead(backwardControl) == LOW) {
+
+    int i;
+    digitalWrite(dir, HIGH); 
+    for (i = 0; i<1; i++)
+    {
+      stepSignal(); //move backward
+    }
+  }
+
 }
 
+/* FUNCTION - SENDS STEP SIGNAL TO EASYDRIVER TO TURN MOTOR */
 void stepSignal(){
-  
-    digitalWrite(doStep, LOW); //this LOW to HIGH change is what creates the
-    digitalWrite(doStep, HIGH); //"Rising Edge" so the easydriver knows to when to step
-    delayMicroseconds(stepSpeed); //delay time between steps, too fast and motor stalls
-  
+
+  digitalWrite(doStep, LOW); //this LOW to HIGH change is what creates the
+  digitalWrite(doStep, HIGH); //"Rising Edge" so the easydriver knows to when to step
+  delayMicroseconds(stepSpeed); //delay time between steps, too fast and motor stalls
+
 }
 
+/* FUNCTION - SENDS SIGNAL TO CAMERA TO TAKE PICTURE WITH DELAYS TO ALLOW SETTLING */
+void takePicture(){
 
+  lcd.clear();
+  lcd.print("Pause for image");
+  lcd.setCursor(0, 1);
+  lcd.print("(");
+  lcd.print ((setPause / 1000), DEC);
+  lcd.print(" seconds)");
 
+  digitalWrite(focus, HIGH); //trigger camera autofocus - camera may not take picture in some modes if this is not triggered first
+  digitalWrite(shutter, HIGH); //trigger camera shutter
 
+  delay(200); //small delay needed for camera to process above signals
 
+  digitalWrite(shutter, LOW); //switch off camera trigger signal
+  digitalWrite(focus, LOW); //switch off camera focus signal
 
+  delay(setPause); //pause to allow for camera to take picture with mirror lockup and to allow flashes to recharge before next shot
 
+  lcd.clear();
 
-
-
-
-
-
-
-
-
+}
 
 
 

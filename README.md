@@ -13,5 +13,7 @@ Toggle whether stage returns to start position at end of stack |
 Select unit of measurement for steps: microns, mm or cm |
 Select speed of stepper motor |
 
-The sketch is an ongoing work in progress. Thanks in particular to Flickr users bert01980 and nsomniius for bug reports and input on development.
+Thanks in particular to Flickr users bert01980 and nsomniius for bug reports and input on development.
 Previous development discussion is available at:http://www.flickr.com/photos/reallysmall/8270022807/
+
+The DigitalToggle folder should be unzipped into your arduino libraries folder. It's required for the sketch to compile.

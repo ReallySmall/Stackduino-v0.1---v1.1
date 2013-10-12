@@ -35,8 +35,9 @@ int doStep = 5; //send step signal to stepper motor
 int focus = 6; //send an autofocus signal to the camera
 int shutter = 7; //send a shutter signal to the camera
 int forwardControl = A2; //for manual positioning
-int backwardControl = A5; //for manual positioning
+int enable = A3; //enable and disable easydriver when not stepping to reduce heat and power consumption (future functionality)
 int limitSwitches = A4; //limit switches to stop stepping if end of travel on rail is reached at either end
+int backwardControl = A5; //for manual positioning
 
 //vars
 int steps = 10; //default number of microns stepper motor should make between pictures
@@ -51,6 +52,7 @@ int uomMultiplier = 1; //multiplier to factor into step signals (1, 1000 or 10,0
 int stepSpeed = 2000; //delay in microseconds between motor steps, governing motor speed in stack
 int lcdloopCounter = 0; //count number of loops to periodically update lcd
 int encoderCounter = 0; //count pulses from encoder
+int disableEasydriver = 1; //whether to disable easydriver betweem steps - default enabled, disable if holding power of motor is required to maintain position (future functionality)
 
 //pushButton toggle
 volatile int buttonState = HIGH; //the current state of the output pin
@@ -58,7 +60,6 @@ volatile int reading; //the current reading from the input pin
 volatile int previous = LOW; //the previous reading from the input pin
 volatile long time = 0; //the last time the output pin was toggled
 volatile long debounce = 400; //the debounce time, increase if the output flickers
-
 
 //rotary pushButton toggle
 volatile int rbbuttonState = HIGH; //the current state of the output pin
@@ -87,6 +88,7 @@ void setup()
   pinMode(shutter, OUTPUT); 
   pinMode(forwardControl, INPUT); 
   pinMode(backwardControl, INPUT); 
+  pinMode(enable, OUTPUT); //(future functionality)
   pinMode(limitSwitches, INPUT);
 
   digitalWrite(focus, LOW);
@@ -97,6 +99,7 @@ void setup()
   digitalWrite(rotarypushButton, HIGH);
   digitalWrite(forwardControl, HIGH);
   digitalWrite(backwardControl, HIGH);
+  digitalWrite(enable, LOW); //(future functionality)
   digitalWrite(limitSwitches, HIGH);
 
   lcd.setCursor(0, 0);
@@ -398,7 +401,7 @@ void loop(){
 
         delay(500);
 
-        digitalWrite(dir, LOW); //set the stepper direction to clockwise
+        digitalWrite(dir, HIGH); //set the stepper direction for backward travel (if your motor is wired the other way around this you may need to reverse this)
         delay(100);
 
         int i = 0; //counter for motor steps
@@ -428,7 +431,7 @@ void loop(){
       delay(2000);
       lcd.clear(); 
       if (returnToStart == 1){   
-        digitalWrite(dir, HIGH); //set the stepper direction to anti-clockwise
+        digitalWrite(dir, LOW); //set the stepper direction for backward travel (if your motor is wired the other way around this you may need to reverse this)
         delay(100);
         lcd.setCursor(0, 0);
         lcd.print("<< Returning..."); 
@@ -464,23 +467,21 @@ void loop(){
 }
 
 /* FUNCTION - RETURNS CURRENT STATE OF MAIN PUSH BUTTON */
-void buttonChange(){
-  
-  reading = digitalRead(pushButton); // store pin's current state
-  
-  if(buttonState == HIGH){ //if in the menu section
-    
-    
-    
+void buttonChange(){ //function to read the current state of the push button
+
+  reading = digitalRead(pushButton);
+
+  if (reading == LOW && previous == HIGH && millis() - time > debounce) {
+    if (buttonState == HIGH)
+      buttonState = LOW;
+    else
+      buttonState = HIGH;
+
+    time = millis();    
   }
-  else{ //if a stack is in progress
-    if (reading == LOW && previous == HIGH && millis() - time > debounce) {
-    buttonState == HIGH; //stop the current stack and return to menu
-    }
-  }
+
+  previous = reading;
 } 
-
-
 
 /* FUNCTION - RETURNS CURRENT STATE OF ROTARY ENCODER'S PUSH BUTTON */
 void rotarybuttonChange(){
@@ -499,14 +500,11 @@ void rotarybuttonChange(){
 } 
 
 /* FUNCTION - RETURNS CHANGE IN ENCODER STATE */
-
-
-
-/* FUNCTION - RETURNS CHANGE IN ENCODER STATE */
 int8_t read_encoder(){
 
   static int8_t enc_states[] = { 
-    0,1,-1,0,-1,0,0,1,1,0,0,-1,0,-1,1,0
+    //0,1,-1,0,-1,0,0,1,1,0,0,-1,0,-1,1,0
+    0,-1,1,0,1,0,0,-1,-1,0,0,1,0,1,-1,0
   };
   static uint8_t old_AB = 0;
   /**/
@@ -541,7 +539,7 @@ void manualControl(){
   while (digitalRead(forwardControl) == LOW) {
 
     int i;
-    digitalWrite(dir, LOW); 
+    digitalWrite(dir, HIGH); 
     for (i = 0; i<1; i++)
     {
       stepSignal(); //move forward
@@ -551,7 +549,7 @@ void manualControl(){
   while (digitalRead(backwardControl) == LOW) {
 
     int i;
-    digitalWrite(dir, HIGH); 
+    digitalWrite(dir, LOW); 
     for (i = 0; i<1; i++)
     {
       stepSignal(); //move backward
@@ -592,11 +590,3 @@ void takePicture(){
   lcd.clear();
 
 }
-
-
-
-
-
-
-
-

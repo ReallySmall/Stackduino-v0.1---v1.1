@@ -5,7 +5,7 @@
  http://www.flickr.com/photos/reallysmall/sets/72157632341602394/
  
  Key parts:
- Arduino
+ ATMega 328
  Easydriver
  Bipolar stepper motor
  Rotary encoder with momentary push button
@@ -27,7 +27,7 @@ LiquidCrystal lcd(8, 9, 10, 11, 12, 13); //lcd pins
 #define ENC_B A1
 #define ENC_PORT PINC
 
-//other digital pins
+//remaining digital pins
 int pushButton = 2;  //start/ stop stack button
 int rotarypushButton = 3; //select/ unselect menu item button
 int dir = 4; //stepper motor direction
@@ -39,7 +39,7 @@ int enable = A3; //enable and disable easydriver when not stepping to reduce hea
 int limitSwitches = A4; //limit switches to stop stepping if end of travel on rail is reached at either end
 int backwardControl = A5; //for manual positioning
 
-//vars
+//defaults
 int steps = 10; //default number of microns stepper motor should make between pictures
 int numPictures = 10; //default total number of pictures to take
 int picCounter = 0; //count of number of pictures taken so far
@@ -52,7 +52,8 @@ int uomMultiplier = 1; //multiplier to factor into step signals (1, 1000 or 10,0
 int stepSpeed = 2000; //delay in microseconds between motor steps, governing motor speed in stack
 int lcdloopCounter = 0; //count number of loops to periodically update lcd
 int encoderCounter = 0; //count pulses from encoder
-int disableEasydriver = 1; //whether to disable easydriver betweem steps - default enabled, disable if holding power of motor is required to maintain position (future functionality)
+boolean disableEasydriver = true; //whether to disable easydriver betweem steps to save power and heat
+boolean reverseFwdBwd = false; //change to true to reverse direction of the forward and backward manual control buttons
 
 //pushButton toggle
 volatile int buttonState = HIGH; //the current state of the output pin
@@ -88,7 +89,7 @@ void setup()
   pinMode(shutter, OUTPUT); 
   pinMode(forwardControl, INPUT); 
   pinMode(backwardControl, INPUT); 
-  pinMode(enable, OUTPUT); //(future functionality)
+  pinMode(enable, OUTPUT);
   pinMode(limitSwitches, INPUT);
 
   digitalWrite(focus, LOW);
@@ -99,12 +100,12 @@ void setup()
   digitalWrite(rotarypushButton, HIGH);
   digitalWrite(forwardControl, HIGH);
   digitalWrite(backwardControl, HIGH);
-  digitalWrite(enable, LOW); //(future functionality)
+  digitalWrite(enable, LOW);
   digitalWrite(limitSwitches, HIGH);
 
   lcd.setCursor(0, 0);
   lcd.print("Stackduino");
-  delay(2000);
+  delay(1000);
   lcd.clear();
 
 }
@@ -112,6 +113,7 @@ void setup()
 void loop(){
 
   if (digitalRead(limitSwitches) == LOW){ //if controller is started up hitting a limit switch disable main functions and print warning to lcd
+    disableEasyDriver();
 
     lcdloopCounter++;
 
@@ -133,9 +135,9 @@ void loop(){
   else{ //if limit switches HIGH run all functions normally
 
     if (buttonState == HIGH){ //this section allows manual control and configures settings using a simple lcd menu system
+      disableEasyDriver(); //switch off stepper motor power if option enabled
 
-      //manual motor control to position stage before stack
-      manualControl();
+      manualControl(); //manual motor control to position stage before stack
 
       if (rbbuttonState == HIGH) { //use encoder to scroll through menu of settings
 
@@ -180,7 +182,7 @@ void loop(){
           steps += read_encoder ();  //use encoder reading function to set value of steps variable
         }
 
-        lcdloopCounter = lcdloopCounter + 1;
+        lcdloopCounter++;
 
         if (lcdloopCounter >= 40){
 
@@ -224,7 +226,7 @@ void loop(){
           //changes in increments of 10 for quick selection of large numbers
         }
 
-        lcdloopCounter = lcdloopCounter + 1;
+        lcdloopCounter++;
 
         if (lcdloopCounter >= 40){
 
@@ -258,7 +260,7 @@ void loop(){
           setPause += (read_encoder () * 1000); //use encoder reading function to set value of setPause variable
         }
 
-        lcdloopCounter = lcdloopCounter + 1;
+        lcdloopCounter++;
 
         if (lcdloopCounter >= 40){
 
@@ -285,7 +287,7 @@ void loop(){
           returnToStart += read_encoder (); //use encoder reading function to set value of returnToStart variable
         }
 
-        lcdloopCounter = lcdloopCounter + 1;
+        lcdloopCounter++;
 
         if (lcdloopCounter >= 40){
 
@@ -313,7 +315,7 @@ void loop(){
           unitofMeasure += read_encoder (); //use encoder reading function to set value of returnToStart variable
         }
 
-        lcdloopCounter = lcdloopCounter + 1;
+        lcdloopCounter++;
 
         if (lcdloopCounter >= 40){
 
@@ -356,7 +358,7 @@ void loop(){
           stepSpeed += (read_encoder () * 1000); //use encoder reading function to set value of stepSpeed variable
         }
 
-        lcdloopCounter = lcdloopCounter + 1;
+        lcdloopCounter++;
 
         if (lcdloopCounter >= 40){
 
@@ -377,6 +379,8 @@ void loop(){
 
     else { //this section runs the stack when the pushButton is pressed
 
+      disableEasyDriver();
+
       for (int i = 0; i < numPictures; i++){ //loop the following actions for number of times dictated by var numPictures
 
         picCounter++; //count of pictures taken so far
@@ -384,15 +388,7 @@ void loop(){
         lcd.clear();
         lcd.print("Moving ");
         lcd.print (steps);
-        if (unitofMeasure==1){
-          lcd.print(" mn");
-        }
-        if (unitofMeasure==2){
-          lcd.print(" mm");
-        }
-        if (unitofMeasure==3){
-          lcd.print(" cm");
-        }
+        unitOfMeasure();
         lcd.setCursor(0, 1);
         lcd.print("Step ");
         lcd.print (picCounter);
@@ -400,16 +396,17 @@ void loop(){
         lcd.print (numPictures);
 
         delay(500);
-
-        digitalWrite(dir, HIGH); //set the stepper direction for backward travel (if your motor is wired the other way around this you may need to reverse this)
+        enableEasyDriver();
+        digitalWrite(dir, HIGH); //set the stepper direction for backward travel (if your motor is wired the other way around you may need to reverse this)
         delay(100);
 
         int i = 0; //counter for motor steps
-        while (i < steps * 16 * uomMultiplier && digitalRead(limitSwitches) == HIGH){ //adjust the number in this statement to tune distance travelled on your setup
+        while (i < steps * 16 * uomMultiplier && digitalRead(limitSwitches) == HIGH){ //adjust the number in this statement to tune distance travelled on your setup. In this case 16 is a product of 8x microstepping and a 2:1 gearing ratio
           stepSignal();
           i++;
         }
         i = 0; //reset counter
+        disableEasyDriver();
 
         if (digitalRead(limitSwitches) == LOW){ //stop motor and reverse if limit switch hit
           retreat();
@@ -438,25 +435,24 @@ void loop(){
         int returnSteps = steps * picCounter;
         lcd.setCursor(0, 1);
         lcd.print (returnSteps);
-        if (unitofMeasure==1){
-          lcd.print(" mn");
-        }
-        if (unitofMeasure==2){
-          lcd.print(" mm");
-        }
-        if (unitofMeasure==3){
-          lcd.print(" cm");
-        }
+        unitOfMeasure();
+
+        enableEasyDriver();
 
         int i = 0; //counter for motor steps
         while (i < returnSteps * 16 * uomMultiplier && digitalRead(limitSwitches) == HIGH){
+
           stepSignal();
           i++;
         }
         i = 0; //reset counter
+
+        disableEasyDriver();
+
         if (digitalRead(limitSwitches) == LOW){ //stop motor and reverse if limit switch hit
           retreat();
         }  
+
         lcd.clear();
       }
       rotaryCounter = 1; //set menu option display to first
@@ -503,7 +499,7 @@ void rotarybuttonChange(){
 int8_t read_encoder(){
 
   static int8_t enc_states[] = { 
-    //0,1,-1,0,-1,0,0,1,1,0,0,-1,0,-1,1,0
+    //0,1,-1,0,-1,0,0,1,1,0,0,-1,0,-1,1,0 //use this line instead to increment encoder in the opposite direction
     0,-1,1,0,1,0,0,-1,-1,0,0,1,0,1,-1,0
   };
   static uint8_t old_AB = 0;
@@ -516,7 +512,7 @@ int8_t read_encoder(){
 
 /* FUNCTION - PULLS CARRIAGE BACK FROM TRIPPED LIMIT SWITCH */
 void retreat(){
-
+  enableEasyDriver();
   digitalToggle(dir); //reverse motor direction to move away from limitswitch
   lcd.setCursor(0, 0);
   lcd.print("End of travel!  ");
@@ -530,30 +526,42 @@ void retreat(){
 
   digitalToggle(dir); //reset motor back to original direction once limit switch is no longer pressed
   lcd.clear();
-
+  disableEasyDriver();
 }
 
 /* FUNCTION - MOVES CARRIAGE BACKWARD AND FORWARD USING PUSH BUTTONS */
 void manualControl(){
 
   while (digitalRead(forwardControl) == LOW) {
-
+    enableEasyDriver();
     int i;
-    digitalWrite(dir, HIGH); 
+    if(reverseFwdBwd == false){
+      digitalWrite(dir, HIGH); 
+    } 
+    else {
+      digitalWrite(dir, LOW);
+    }
     for (i = 0; i<1; i++)
     {
       stepSignal(); //move forward
     }
+    disableEasyDriver();
   }
 
   while (digitalRead(backwardControl) == LOW) {
-
+    enableEasyDriver();
     int i;
-    digitalWrite(dir, LOW); 
+    if(reverseFwdBwd == false){
+      digitalWrite(dir, LOW); 
+    } 
+    else {
+      digitalWrite(dir, HIGH);
+    } 
     for (i = 0; i<1; i++)
     {
       stepSignal(); //move backward
     }
+    disableEasyDriver();
   }
 
 }
@@ -590,3 +598,32 @@ void takePicture(){
   lcd.clear();
 
 }
+
+/* FUNCTION - ENABLES THE EASYDRIVER */
+void enableEasyDriver() {
+  digitalWrite(enable, LOW);
+}
+
+/* FUNCTION - DISABLES THE EASYDRIVER WHEN NOT IN USE IF OPTION SET */
+void disableEasyDriver() {
+  if(disableEasydriver == true) {
+    digitalWrite(enable, HIGH);
+  } 
+  else {
+    digitalWrite(enable, LOW);
+  } 
+}
+
+/* FUNCTION - PRINTS SELECTED UNIT OF MEASURE TO SCREEN */
+void unitOfMeasure() {        
+  if (unitofMeasure==1){
+    lcd.print(" mn");
+  }
+  if (unitofMeasure==2){
+    lcd.print(" mm");
+  }
+  if (unitofMeasure==3){
+    lcd.print(" cm");
+  }
+}
+

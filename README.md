@@ -6,17 +6,17 @@ It uses an ATMega MCU, an easydriver and optocouplers to move the camera/ subjec
 
 Features:
 Manual fwd/ bwd control of stepper motor to set up the shot
-Menu options to change:
+Menu options:
 - Set step size
 - Set number of steps
 - Set pause time between steps
 - Toggle whether stage returns to start position at end of stack
 - Select unit of measurement for steps: microns, mm or cm
 - Adjust speed of stepper motor
-- disable Easydriver when not stepping: runs a lot cooler and uses less energy, but your stacker mechanics must be able to hold position without the help of motor torque to use this
+- Disable Easydriver when not stepping: runs a lot cooler and uses less energy, but your stacker mechanics must be able to hold position without the help of motor torque to use this
 
 Thanks in particular to Flickr users bert01980 and nsomniius for bug reports and input on development.
-Previous development discussion is available at:http://www.flickr.com/photos/reallysmall/8270022807/
+Various prototyping images and discussion are available at: http://www.flickr.com/photos/reallysmall/sets/72157632341602394/with/10761814804/.
 
 Notes on Stackduino code:
 

@@ -13,6 +13,7 @@ Menu options to change:
 - Toggle whether stage returns to start position at end of stack
 - Select unit of measurement for steps: microns, mm or cm
 - Adjust speed of stepper motor
+- disable Easydriver when not stepping: runs a lot cooler and uses less energy, but your stacker mechanics must be able to hold position without the help of motor torque to use this
 
 Thanks in particular to Flickr users bert01980 and nsomniius for bug reports and input on development.
 Previous development discussion is available at:http://www.flickr.com/photos/reallysmall/8270022807/

@@ -44,7 +44,6 @@ int steps = 10; //default number of microns stepper motor should make between pi
 int numPictures = 10; //default total number of pictures to take
 int picCounter = 0; //count of number of pictures taken so far
 int setPause = 5000; //default time in millis to wait for camera to take picture
-int returnToStart = 2; //whether camera/ subject is returned to starting position at end of stack, controlled by returnNum
 int manualSpeedXaxis = 0; //delay between steps in manual mode, governing motor speed
 int rotaryCounter = 1; //which menu item to display when turning rotary encoder
 int unitofMeasure = 1; //whether to use microns, mm or cm when making steps
@@ -54,6 +53,7 @@ int lcdloopCounter = 0; //count number of loops to periodically update lcd
 int encoderCounter = 0; //count pulses from encoder
 boolean disableEasydriver = true; //whether to disable easydriver betweem steps to save power and heat
 boolean reverseFwdBwd = false; //change to true to reverse direction of the forward and backward manual control buttons
+boolean returnToStart = false; //whether camera/ subject is returned to starting position at end of stack
 
 //pushButton toggle
 volatile int buttonState = HIGH; //the current state of the output pin
@@ -201,15 +201,8 @@ void loop(){
           }
           lcd.print (steps  , DEC);
 
-          if (unitofMeasure==1){
-            lcd.print(" mn");
-          }
-          if (unitofMeasure==2){
-            lcd.print(" mm");
-          }
-          if (unitofMeasure==3){
-            lcd.print(" cm");
-          }
+          unitOfMeasure();
+          
           lcd.print("         "); //fill rest of display line with empty chars to overwrite conetnt of previous screen  
 
           lcdloopCounter = 0;
@@ -283,7 +276,7 @@ void loop(){
       case 4: //toggles whether camera/subject is returned the starting position at the end of the stack
 
         if (rbbuttonState == LOW) { //press rotary encoder button within this menu item to edit variable
-          returnToStart = constrain(returnToStart, 1, 2); //limits choice of returnToStart to specified range
+          returnToStart = constrain(returnToStart, true, false); //limits choice of returnToStart to specified range
           returnToStart += read_encoder (); //use encoder reading function to set value of returnToStart variable
         }
 
@@ -295,7 +288,7 @@ void loop(){
           lcd.print("Return to start:");
           lcd.setCursor(0, 1);
 
-          if(returnToStart == 1){
+          if(returnToStart == true){
             lcd.print ("Enabled         ");
           }
           else {
@@ -462,7 +455,7 @@ void loop(){
   }
 }
 
-/* FUNCTION - RETURNS CURRENT STATE OF MAIN PUSH BUTTON */
+/* RETURN CURRENT STATE OF MAIN PUSH BUTTON */
 void buttonChange(){ //function to read the current state of the push button
 
   reading = digitalRead(pushButton);
@@ -479,7 +472,7 @@ void buttonChange(){ //function to read the current state of the push button
   previous = reading;
 } 
 
-/* FUNCTION - RETURNS CURRENT STATE OF ROTARY ENCODER'S PUSH BUTTON */
+/* RETURN CURRENT STATE OF ROTARY ENCODER'S PUSH BUTTON */
 void rotarybuttonChange(){
 
   rbreading = digitalRead(rotarypushButton);
@@ -495,7 +488,7 @@ void rotarybuttonChange(){
 
 } 
 
-/* FUNCTION - RETURNS CHANGE IN ENCODER STATE */
+/* RETURN CHANGE IN ENCODER STATE */
 int8_t read_encoder(){
 
   static int8_t enc_states[] = { 
@@ -510,7 +503,7 @@ int8_t read_encoder(){
 
 }
 
-/* FUNCTION - PULLS CARRIAGE BACK FROM TRIPPED LIMIT SWITCH */
+/* PULL CARRIAGE BACK FROM TRIPPED LIMIT SWITCH */
 void retreat(){
   enableEasyDriver();
   digitalToggle(dir); //reverse motor direction to move away from limitswitch
@@ -529,7 +522,7 @@ void retreat(){
   disableEasyDriver();
 }
 
-/* FUNCTION - MOVES CARRIAGE BACKWARD AND FORWARD USING PUSH BUTTONS */
+/* MOVE CARRIAGE BACKWARD AND FORWARD USING PUSH BUTTONS */
 void manualControl(){
 
   while (digitalRead(forwardControl) == LOW) {
@@ -566,7 +559,7 @@ void manualControl(){
 
 }
 
-/* FUNCTION - SENDS STEP SIGNAL TO EASYDRIVER TO TURN MOTOR */
+/* SEND STEP SIGNAL TO EASYDRIVER TO TURN MOTOR */
 void stepSignal(){
 
   digitalWrite(doStep, LOW); //this LOW to HIGH change is what creates the
@@ -575,7 +568,7 @@ void stepSignal(){
 
 }
 
-/* FUNCTION - SENDS SIGNAL TO CAMERA TO TAKE PICTURE WITH DELAYS TO ALLOW SETTLING */
+/* SEND SIGNAL TO CAMERA TO TAKE PICTURE WITH DELAYS TO ALLOW SETTLING */
 void takePicture(){
 
   lcd.clear();
@@ -599,12 +592,12 @@ void takePicture(){
 
 }
 
-/* FUNCTION - ENABLES THE EASYDRIVER */
+/* ENABLE THE EASYDRIVER */
 void enableEasyDriver() {
   digitalWrite(enable, LOW);
 }
 
-/* FUNCTION - DISABLES THE EASYDRIVER WHEN NOT IN USE IF OPTION SET */
+/* DISABLE THE EASYDRIVER WHEN NOT IN USE IF OPTION SET */
 void disableEasyDriver() {
   if(disableEasydriver == true) {
     digitalWrite(enable, HIGH);
@@ -614,7 +607,7 @@ void disableEasyDriver() {
   } 
 }
 
-/* FUNCTION - PRINTS SELECTED UNIT OF MEASURE TO SCREEN */
+/* PRINT SELECTED UNIT OF MEASURE TO SCREEN */
 void unitOfMeasure() {        
   if (unitofMeasure==1){
     lcd.print(" mn");

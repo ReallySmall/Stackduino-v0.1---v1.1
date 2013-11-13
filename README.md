@@ -38,5 +38,4 @@ v1 of the Stackduino pcb probably won't be developed any further but tweaks to t
 Tinkering has started on Stackduino v2. This will be largely based on SMD components and build on v1 with various additions and improvements:
 - much smaller
 - much more efficient use of batteries
-- components which use less power or are throttled when not in use
 - built in micro-usb port for programming

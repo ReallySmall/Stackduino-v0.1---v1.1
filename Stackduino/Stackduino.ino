@@ -115,7 +115,7 @@ void setup()
 void loop(){
 
   if (digitalRead(limitSwitches) == LOW){ //if controller is started up hitting a limit switch disable main functions and print warning to lcd
-    disableEasyDriver();
+    disableEasyDriver(); //disable easydr
 
     lcdloopCounter++;
 
@@ -129,16 +129,15 @@ void loop(){
 
     }      
 
-    //Provide manual motor control to move away from limit switch and resolve error
-    manualControl();
+    manualControl(); //Provide manual motor control to move away from limit switch and resolve error
 
   }
 
   else{ //if limit switches HIGH run all functions normally
 
     if (buttonState == HIGH){ //this section allows manual control and configures settings using a simple lcd menu system
+      
       disableEasyDriver(); //switch off stepper motor power if option enabled
-
       manualControl(); //manual motor control to position stage before stack
 
       if (rbbuttonState == HIGH) { //use encoder to scroll through menu of settings
@@ -175,7 +174,7 @@ void loop(){
 
       } 
 
-      switch (rotaryCounter) {
+      switch (rotaryCounter) { //the menu options
 
       case 1: //this menu screen changes the number of steps to move each time
 
@@ -186,13 +185,13 @@ void loop(){
 
         lcdloopCounter++;
 
-        if (lcdloopCounter >= 40){
+        if (lcdloopCounter >= 40){ //the screen hardware is slow so only print to it every 40th loop to minimise input lag
 
           lcd.setCursor(0, 0);
           lcd.print("Set step size:  ");
           lcd.setCursor(0, 1);
-          varSize = steps;
-          frontLoadAndPrint();
+          varSize = steps; //transfer the value of the menu variable to varSize
+          frontLoadAndPrint(); //then use that figure to frontload with correct number of zeroes and print to screen
           lcd.print (steps  , DEC);
           unitOfMeasure();
           lcd.print("         "); //fill rest of display line with empty chars to overwrite conetnt of previous screen  
@@ -212,13 +211,13 @@ void loop(){
 
         lcdloopCounter++;
 
-        if (lcdloopCounter >= 40){
+        if (lcdloopCounter >= 40){  //the screen hardware is slow so only print to it every 40th loop to minimise input lag
 
           lcd.setCursor(0, 0);
           lcd.print("Set num steps:  ");
           lcd.setCursor(0, 1);
-          varSize = numPictures;
-          frontLoadAndPrint();
+          varSize = numPictures; //transfer the value of the menu variable to varSize
+          frontLoadAndPrint(); //then use that figure to frontload with correct number of zeroes and print to screen
           lcd.print (numPictures, DEC);
           lcd.print ("        ");
           lcdloopCounter = 0;
@@ -238,7 +237,7 @@ void loop(){
 
         lcdloopCounter++;
 
-        if (lcdloopCounter >= 40){
+        if (lcdloopCounter >= 40){  //the screen hardware is slow so only print to it every 40th loop to minimise input lag
 
           lcd.setCursor(0, 0);
           lcd.print("Set pause time: ");
@@ -263,7 +262,7 @@ void loop(){
 
         lcdloopCounter++;
 
-        if (lcdloopCounter >= 40){
+        if (lcdloopCounter >= 40){  //the screen hardware is slow so only print to it every 40th loop to minimise input lag
 
           lcd.setCursor(0, 0);
           lcd.print("Return to start:");
@@ -289,7 +288,7 @@ void loop(){
 
         lcdloopCounter++;
 
-        if (lcdloopCounter >= 40){
+        if (lcdloopCounter >= 40){  //the screen hardware is slow so only print to it every 40th loop to minimise input lag
 
           lcd.setCursor(0, 0);
           lcd.print("Unit of measure:");
@@ -332,7 +331,7 @@ void loop(){
 
         lcdloopCounter++;
 
-        if (lcdloopCounter >= 40){
+        if (lcdloopCounter >= 40){  //the screen hardware is slow so only print to it every 40th loop to minimise input lag
 
           lcd.setCursor(0, 0);
           lcd.print("Stepper speed:  ");
@@ -354,13 +353,13 @@ void loop(){
 
         lcdloopCounter++;
 
-        if (lcdloopCounter >= 40){
+        if (lcdloopCounter >= 40){  //the screen hardware is slow so only print to it every 40th loop to minimise input lag
 
           lcd.setCursor(0, 0);
           lcd.print("Set bracketing: ");
           lcd.setCursor(0, 1);
-          varSize = bracket;
-          frontLoadAndPrint();
+          varSize = bracket; //transfer the value of the menu variable to varSize
+          frontLoadAndPrint(); //then use that figure to frontload with correct number of zeroes and print to screen
           lcd.print (bracket  , DEC);          
           lcd.print("            "); //fill rest of display line with empty chars to overwrite conetnt of previous screen  
           lcdloopCounter = 0;

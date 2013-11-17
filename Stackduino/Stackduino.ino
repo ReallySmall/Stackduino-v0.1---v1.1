@@ -52,6 +52,7 @@ int stepSpeed = 2000; //delay in microseconds between motor steps, governing mot
 int bracket = 1; //number of images to bracket per focus slice
 int lcdloopCounter = 0; //count number of loops to periodically update lcd
 int encoderCounter = 0; //count pulses from encoder
+int varSize = 0; //used for frontloading menu item numbers with 0's
 boolean disableEasydriver = true; //whether to disable easydriver betweem steps to save power and heat
 boolean reverseFwdBwd = false; //change to true to reverse direction of the forward and backward manual control buttons
 boolean returnToStart = false; //whether camera/ subject is returned to starting position at end of stack
@@ -190,22 +191,11 @@ void loop(){
           lcd.setCursor(0, 0);
           lcd.print("Set step size:  ");
           lcd.setCursor(0, 1);
-
-          if (steps < 10){
-            lcd.print (000, DEC); //adds three leading zeros to single digit Step size numbers on the display
-          }
-          if (steps < 100){
-            lcd.print (00, DEC); //adds two leading zeros to double digit Step size numbers on the display
-          }
-          if (steps < 1000){
-            lcd.print (0, DEC); //adds one leading zero to triple digit Step size numbers on the display
-          }
+          varSize = steps;
+          frontLoadAndPrint();
           lcd.print (steps  , DEC);
-
           unitOfMeasure();
-
           lcd.print("         "); //fill rest of display line with empty chars to overwrite conetnt of previous screen  
-
           lcdloopCounter = 0;
 
         }      
@@ -227,18 +217,10 @@ void loop(){
           lcd.setCursor(0, 0);
           lcd.print("Set num steps:  ");
           lcd.setCursor(0, 1);
-          if (numPictures < 10){
-            lcd.print (000, DEC); //adds three leading zeros to single digit numPictures numbers on the display
-          }
-          if (numPictures < 100){
-            lcd.print (00, DEC); //adds two leading zeros to double digit numPictures numbers on the display
-          }
-          if (numPictures < 1000){
-            lcd.print (0, DEC); //adds one leading zero to triple digit numPictures numbers on the display
-          }
+          varSize = numPictures;
+          frontLoadAndPrint();
           lcd.print (numPictures, DEC);
           lcd.print ("        ");
-
           lcdloopCounter = 0;
 
         } 
@@ -261,13 +243,11 @@ void loop(){
           lcd.setCursor(0, 0);
           lcd.print("Set pause time: ");
           lcd.setCursor(0, 1);
-
           if (setPause < 10000){
             lcd.print (0, DEC); //adds one leading zero to triple digit setPause numbers on the display
           }
           lcd.print ((setPause / 1000), DEC); //divide millis by 1000 to display in seconds
           lcd.print(" seconds      ");  
-
           lcdloopCounter = 0;
 
         }
@@ -288,14 +268,12 @@ void loop(){
           lcd.setCursor(0, 0);
           lcd.print("Return to start:");
           lcd.setCursor(0, 1);
-
           if(returnToStart == true){
             lcd.print ("Enabled         ");
           }
           else {
             lcd.print ("Disabled        ");
           }
-
           lcdloopCounter = 0;
 
         }
@@ -361,7 +339,6 @@ void loop(){
           lcd.setCursor(0, 1);
           lcd.print (stepSpeed, DEC);
           lcd.print (" microsecs  ");
-
           lcdloopCounter = 0;
 
         }
@@ -382,15 +359,10 @@ void loop(){
           lcd.setCursor(0, 0);
           lcd.print("Set bracketing: ");
           lcd.setCursor(0, 1);
-          if (bracket < 10){
-            lcd.print (000, DEC); //adds three leading zeros to single digit numPictures numbers on the display
-          }
-          if (bracket < 100){
-            lcd.print (00, DEC); //adds two leading zeros to double digit numPictures numbers on the display
-          }
+          varSize = bracket;
+          frontLoadAndPrint();
           lcd.print (bracket  , DEC);          
           lcd.print("            "); //fill rest of display line with empty chars to overwrite conetnt of previous screen  
-
           lcdloopCounter = 0;
 
         }      
@@ -683,5 +655,17 @@ void unitOfMeasure() {
   }
 }
 
+/* FRONT PAD MENU ITEM NUMBERS WITH ZEROES */
 
+void frontLoadAndPrint() {
+  if (varSize < 10){
+    lcd.print (000, DEC); //adds three leading zeros to single digit Step size numbers on the display
+  }
+  if (varSize < 100){
+    lcd.print (00, DEC); //adds two leading zeros to double digit Step size numbers on the display
+  }
+  if (varSize < 1000){
+    lcd.print (0, DEC); //adds one leading zero to triple digit Step size numbers on the display
+  }
+}
 

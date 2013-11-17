@@ -49,6 +49,7 @@ int rotaryCounter = 1; //which menu item to display when turning rotary encoder
 int unitofMeasure = 1; //whether to use microns, mm or cm when making steps
 int uomMultiplier = 1; //multiplier to factor into step signals (1, 1000 or 10,000) depending on unit of measure used
 int stepSpeed = 2000; //delay in microseconds between motor steps, governing motor speed in stack
+int bracket = 1; //number of images to bracket per focus slice
 int lcdloopCounter = 0; //count number of loops to periodically update lcd
 int encoderCounter = 0; //count pulses from encoder
 boolean disableEasydriver = true; //whether to disable easydriver betweem steps to save power and heat
@@ -161,14 +162,14 @@ void loop(){
           }
         }
 
-        rotaryCounter = constrain(rotaryCounter, 0, 7); //limits choice to specified range
+        rotaryCounter = constrain(rotaryCounter, 0, 8); //limits choice to specified range
 
-        if (rotaryCounter == 7){ //when counter value exceeds number of menu items
+        if (rotaryCounter == 8){ //when counter value exceeds number of menu items
           rotaryCounter = 1; //reset it to 1 again to create a looping navigation
         }
 
         if (rotaryCounter == 0){ //when counter value goes below minimum number of menu items
-          rotaryCounter = 6; //reset it to 7 again to create a looping navigation
+          rotaryCounter = 7; //reset it to 7 again to create a looping navigation
         }     
 
       } 
@@ -202,7 +203,7 @@ void loop(){
           lcd.print (steps  , DEC);
 
           unitOfMeasure();
-          
+
           lcd.print("         "); //fill rest of display line with empty chars to overwrite conetnt of previous screen  
 
           lcdloopCounter = 0;
@@ -366,6 +367,35 @@ void loop(){
         }
 
         break; 
+
+      case 7: //this menu screen changes the number of images to take per focus slice (exposure bracketing support)
+
+        if (rbbuttonState == LOW) { //press rotary encoder button within this menu item to edit variable
+          bracket = constrain(bracket, 1, 10); //limits choice of input step size to specified range
+          bracket += read_encoder ();  //use encoder reading function to set value of steps variable
+        }
+
+        lcdloopCounter++;
+
+        if (lcdloopCounter >= 40){
+
+          lcd.setCursor(0, 0);
+          lcd.print("Set bracketing: ");
+          lcd.setCursor(0, 1);
+          if (bracket < 10){
+            lcd.print (000, DEC); //adds three leading zeros to single digit numPictures numbers on the display
+          }
+          if (bracket < 100){
+            lcd.print (00, DEC); //adds two leading zeros to double digit numPictures numbers on the display
+          }
+          lcd.print (bracket  , DEC);          
+          lcd.print("            "); //fill rest of display line with empty chars to overwrite conetnt of previous screen  
+
+          lcdloopCounter = 0;
+
+        }      
+
+        break;
 
       }
     } //end of setup menu section
@@ -570,26 +600,59 @@ void stepSignal(){
 
 /* SEND SIGNAL TO CAMERA TO TAKE PICTURE WITH DELAYS TO ALLOW SETTLING */
 void takePicture(){
+  if(bracket == 1) { //If bracketing is not enabled
+    lcd.clear();
+    lcd.print("Pause for image");
+    lcd.setCursor(0, 1);
+    lcd.print("(");
+    lcd.print ((setPause / 1000), DEC);
+    lcd.print(" seconds)");
 
-  lcd.clear();
-  lcd.print("Pause for image");
-  lcd.setCursor(0, 1);
-  lcd.print("(");
-  lcd.print ((setPause / 1000), DEC);
-  lcd.print(" seconds)");
+    digitalWrite(focus, HIGH); //trigger camera autofocus - camera may not take picture in some modes if this is not triggered first
+    digitalWrite(shutter, HIGH); //trigger camera shutter
 
-  digitalWrite(focus, HIGH); //trigger camera autofocus - camera may not take picture in some modes if this is not triggered first
-  digitalWrite(shutter, HIGH); //trigger camera shutter
+    delay(200); //small delay needed for camera to process above signals
 
-  delay(200); //small delay needed for camera to process above signals
+    digitalWrite(shutter, LOW); //switch off camera trigger signal
+    digitalWrite(focus, LOW); //switch off camera focus signal
 
-  digitalWrite(shutter, LOW); //switch off camera trigger signal
-  digitalWrite(focus, LOW); //switch off camera focus signal
+    delay(setPause); //pause to allow for camera to take picture with mirror lockup and to allow flashes to recharge before next shot
 
-  delay(setPause); //pause to allow for camera to take picture with mirror lockup and to allow flashes to recharge before next shot
+    lcd.clear();
+  } 
+  else {  //If bracketing is enabled
+    int bracketNum = 1; //counter for brackets
+    for (int i = 0; i < bracket; i++)
+    {
 
-  lcd.clear();
+      lcd.clear();
+      lcd.print("Bracketed image:");
+      lcd.setCursor(0, 1);
+      lcd.print(bracketNum);
+      lcd.print(" of ");
+      lcd.print(bracket);
+      delay(1000);
+      bracketNum++;
+      lcd.clear();
+      lcd.print("Pause for image");
+      lcd.setCursor(0, 1);
+      lcd.print("(");
+      lcd.print ((setPause / 1000), DEC);
+      lcd.print(" seconds)");
 
+      digitalWrite(focus, HIGH); //trigger camera autofocus - camera may not take picture in some modes if this is not triggered first
+      digitalWrite(shutter, HIGH); //trigger camera shutter
+
+      delay(200); //small delay needed for camera to process above signals
+
+      digitalWrite(shutter, LOW); //switch off camera trigger signal
+      digitalWrite(focus, LOW); //switch off camera focus signal
+
+      delay(setPause); //pause to allow for camera to take picture with mirror lockup and to allow flashes to recharge before next shot
+
+      lcd.clear();
+    }
+  }
 }
 
 /* ENABLE THE EASYDRIVER */
@@ -619,4 +682,6 @@ void unitOfMeasure() {
     lcd.print(" cm");
   }
 }
+
+
 

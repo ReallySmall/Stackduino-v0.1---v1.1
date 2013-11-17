@@ -17,8 +17,7 @@ With some tweaks to the code, it could also be used for any other application wh
 This repository includes the gerber files required to produce a pcb, a parts list and the code required to run the controller. In addition, you will need a focus stacking setup to connect it to(!) and optionally an enclosure to put the controller into.
 
 Features:
-Manual fwd/ bwd control of stepper motor to set up the shot
-Menu options:
+- Manual fwd/ bwd control of stepper motor to set up the shot
 - Set step size
 - Set number of steps
 - Set pause time between steps

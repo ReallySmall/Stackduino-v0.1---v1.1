@@ -1,8 +1,20 @@
 Stackduino
 ==========
-Stackduino is a diy focus stacking controller for automating the process of taking image slices at high magnification to compile afterwards with software. With some tweaks to the code, it could also be used for any other application which involves moving a camera and taking a picture - such as 3d scanning, time-lapse, panorama stitching etc.
+Stackduino is a controller for automating focus stacking which you can build yourself. 
 
-It uses an ATMega MCU, an easydriver and optocouplers to move the camera/ subject a chosen distance, take a photo and then repeat the process a specified number of times until enough image slices have been taken to compile into a stack.
+Focus stacking is a technique commonly used in macro-photography which combines multiple images taken at different focus distances (using a linear stage) to give a resulting image with a greater depth of field than any of the individual source images.
+Focus stacking can be done manually by adjusting the linear stage to the next position, releasing the camera shutter and repeating. There are some drawbacks to doing it by hand however:
+
+- Adjusting the stage accurately by eye can be difficult and repeating that accuracy for every focus slice, even more so. Any slices which are too deep will create an out of focus band in the final image
+- Touching the equipment introduces vibration and small movements which can effect the final image adversely
+- Manual stacking is time-consuming. If photographing a live subject the window of opportunity may be lost before the stack is complete
+
+Attaching a small stepper motor to the linear stage's actuator and controlling it electronically avoids these problems. Focus stacks become quick, accurate and repeatable.
+
+Stackduino is a focus stacking controller which coordinates a stepper motor and a camera's shutter release to automate the stacking process.
+With some tweaks to the code, it could also be used for any other application which involves moving a camera and taking a picture - such as 3d scanning, time-lapse, panorama stitching etc.
+
+This repository includes the gerber files required to produce a pcb, a parts list and the code required to run the controller. In addition, you will need a focus stacking setup to connect it to(!) and optionally an enclosure to put the controller into.
 
 Features:
 Manual fwd/ bwd control of stepper motor to set up the shot
@@ -10,6 +22,7 @@ Menu options:
 - Set step size
 - Set number of steps
 - Set pause time between steps
+- Set number of images to take per step (HDR support)
 - Toggle whether stage returns to start position at end of stack
 - Select unit of measurement for steps: microns, mm or cm
 - Adjust speed of stepper motor
@@ -36,6 +49,6 @@ Next steps:
 v1 of the Stackduino pcb probably won't be developed any further but tweaks to the code will be ongoing. Pull requests with improvements always well received.
 
 Tinkering has started on Stackduino v2. This will be largely based on SMD components and build on v1 with various additions and improvements:
-- much smaller
-- much more efficient use of batteries
+- smaller
+- more efficient use of batteries
 - built in micro-usb port for programming

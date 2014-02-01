@@ -30,13 +30,16 @@
         <hr>
 
         <section id="main_content">
-<h3>What is Stackduino?</h3>
+<h3>About</h3>
 <p>Stackduino is an open source motion controller which interfaces with a stepper motor, limit switches and a camera shutter. It's simple to put together using cheap and widely available components.</p> 
 <p>Stackduino was developed within the Arduino environment, primarily with focus stacking in mind - hence the name. However, with some tweaks to the code, it could also be used for any other application which involves moving a camera and taking a picture - such as 3d scanning, time-lapse, panorama stitching etc...</p>
-  <a href="http://www.flickr.com/photos/reallysmall/10761814804/" title="Stackduino v1.1 pcb by Really Small, on Flickr"><img src="http://farm3.staticflickr.com/2836/10761814804_6a7b592182_b.jpg"  style="border: 1px solid black;" width="588" height="1024" alt="Stackduino v1.1 pcb"></a>      
-<div style="background-color: white; padding: 5px; border: 1px solid grey; font-size: 80%; max-width: 575px;"><small>Stackduino v1.1 pcb, top and bottom views.</small></div>
+  <a href="http://www.flickr.com/photos/reallysmall/12253193595/" title="Stackduino v1.1 pcb by Really Small, on Flickr"><img src="http://farm6.staticflickr.com/5496/12253193595_44f5db900c_b.jpg"  style="border: 1px solid black;" width="588" height="785" alt="Stackduino v1.1 pcb"></a>       
+<div style="background-color: white; padding: 5px; border: 1px solid grey; font-size: 80%; max-width: 575px;"><small>Stackduino v1 populated pcb, top and bottom views.</small></div>
+<p></p>	
+ <a href="http://www.flickr.com/photos/reallysmall/10761814804/" title="Stackduino v1.1 pcb by Really Small, on Flickr"><img src="http://farm3.staticflickr.com/2836/10761814804_6a7b592182_b.jpg"  style="border: 1px solid black;" width="588" height="1024" alt="Stackduino v1.1 pcb"></a>      
+<div style="background-color: white; padding: 5px; border: 1px solid grey; font-size: 80%; max-width: 575px;"><small>Stackduino v1 pcb layout, top and bottom views.</small></div>
 <p></p>		  
-<h3>About Focus Stacking</h3>
+<h3>Focus Stacking</h3>
 <p><a href="http://en.wikipedia.org/wiki/Focus_stacking">Focus stacking</a> is a technique commonly used in macro-photography which combines multiple images taken at different focus distances (often using some form of linear stage) to give a resulting image with a greater depth of field than any of the individual source images.</p>
 <a href="http://www.flickr.com/photos/reallysmall/8925700250/" title="Dagger Fly by Really Small, on Flickr"><img style="border: 1px solid black;" src="http://farm4.staticflickr.com/3828/8925700250_7f0f9cd9f6_b.jpg" width="683" height="1024" alt="Dagger Fly"></a>
 <div style="background-color: white; padding: 5px; border: 1px solid grey; font-size: 80%"><small>Example of a focus stacked image, made using Stackduino. Taken at 5x magnification, a composite of 150 incrementally focused images, 14 microns apart.</small></div>
@@ -52,7 +55,7 @@
 <a href="http://www.flickr.com/photos/reallysmall/5649044078/" title="Automated Macro Focus Stacking Setup by Really Small, on Flickr"><img src="http://farm6.staticflickr.com/5109/5649044078_0ddf5f36c2_z.jpg" width="640" height="416" alt="Automated Macro Focus Stacking Setup"></a>
 <div style="background-color: white; padding: 5px; border: 1px solid grey; font-size: 80%"><small>Example of a focus stacking setup with stepper motor (3) connected to linear stage (5) using a timing belt and pulleys (4). The junction box (6) connects the Stackduino controller to the stacker with a serial cable and breaks out the motor, limit switch and camera signals.</small></div>
 <p></p>
-<h3>What's in the Repo?</h3>
+<h3>Contents of the Repo</h3>
 
 <p>The Stackduino GitHub repository includes the gerber files required to produce a pcb, a parts list and the code required to run the controller.</p>
 
@@ -69,13 +72,13 @@
 <li>Disable Easydriver when not stepping: runs a lot cooler and uses less energy. For best results the stacker mechanics should be able to hold exact position without the aid of motor torque</li>
 </ul>
 
-<h3>Notes on Stackduino code</h3>
+<h3>Notes on code</h3>
 <ul>
 <li>The code is developed in the Arduino IDE</li>
 <li>The "DigitalToggle" folder should be unzipped into your arduino libraries folder. It's required for the sketch to compile</li>
 </ul>
 
-<h3>Notes on Stackduino hardware</h3>
+<h3>Notes on hardware</h3>
 <h4>General</h4>
 <ul>
 <li>The pcb was designed in <a href="http://fritzing.org/">Fritzing</a></li>

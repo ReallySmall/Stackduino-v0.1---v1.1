@@ -75,7 +75,7 @@
 <h3>Notes on code</h3>
 <ul>
 <li>The code is developed in the Arduino IDE</li>
-<li>The "DigitalToggle" folder should be unzipped into your arduino libraries folder. It's required for the sketch to compile</li>
+<li>The "DigitalToggle" library should be imported into your arduino install. It's required for the sketch to compile</li>
 </ul>
 
 <h3>Notes on hardware</h3>
@@ -86,11 +86,10 @@
 <li>To protect the camera, optocouplers electrically separate it from the controller</li>
 <li>Stepper driving is looked after by an <a href="http://www.schmalzhaus.com/EasyDriver/">Easydriver</a> board attached to the underside of the main pcb</li>
 <li>It's a pretty straightforward circuit, but usual disclaimers apply - build at your own risk</li>
-<li>Battery/ wall adapter power selection is done with a simple diode OR system. The supply with the highest voltage is the one that gets used, so to work as expected your battery voltage should be a little lower than your dc adapter's</li>
 </ul>
 <h4>Power</h4>
 <ul>
-<li>Power requirements are largely dictated by the stepper driver and motor - aim for 12v 1A</li>
+<li>Power requirements are largely dictated by the stepper driver and motor - aim for a dc adapter capable of supplying at least 1A at 12v</li>
 <li>Battery/ wall adapter power selection is done with a simple diode OR system. The supply with the highest voltage is the one that gets used, so to work as expected the battery voltage should be a little lower than the dc adapter's</li>
 </ul>
 <h3>Next steps</h3>

@@ -66,6 +66,7 @@
 <li>Set number of steps</li>
 <li>Set pause time between steps</li>
 <li>Set number of images to take per step (for exposure bracketing if supported by camera)</li>
+<li>Supports mirror lockup - sends two, delay seperated shutter signals
 <li>Toggle whether stage returns to start position at end of stack</li>
 <li>Select unit of measurement for steps: microns, mm or cm</li>
 <li>Adjust speed of stepper motor</li>
@@ -75,7 +76,7 @@
 <h3>Notes on code</h3>
 <ul>
 <li>The code is developed in the Arduino IDE</li>
-<li>The "DigitalToggle" library should be imported into your arduino install. It's required for the sketch to compile</li>
+<li>The required LiquidCrystal library should be included as standard in your Arduino install and compile automatically</li>
 </ul>
 
 <h3>Notes on hardware</h3>
@@ -85,7 +86,7 @@
 <li>The MCU is an ATMega 328 chip, flashed with the Arduino Uno bootloader. The board provides a pinout for programming the chip with a generic FT232RL USB > Serial Adapter</li>
 <li>To protect the camera, optocouplers electrically separate it from the controller</li>
 <li>Stepper driving is looked after by an <a href="http://www.schmalzhaus.com/EasyDriver/">Easydriver</a> board attached to the underside of the main pcb</li>
-<li>It's a pretty straightforward circuit, but usual disclaimers apply - build at your own risk</li>
+<li><b>It's a pretty straightforward circuit, but you will be building it yourself and connecting it to your own expensive equipment, so usual disclaimers apply - test it thoroughly and use at your own risk</b></li>
 </ul>
 <h4>Power</h4>
 <ul>
@@ -93,11 +94,12 @@
 <li>Battery/ wall adapter power selection is done with a simple diode OR system. The supply with the highest voltage is the one that gets used, so to work as expected the battery voltage should be a little lower than the dc adapter's</li>
 </ul>
 <h3>Next steps</h3>
-<p>Tinkering has started on Stackduino v2. This will be largely based on SMD components and build on v1 with various additions and improvements:</p>
+<p>Tinkering has started on <a href="https://github.com/ReallySmall/Stackduino-2">Stackduino v2</a>. This will be largely based on SMD components and build on v1 with various additions and improvements:</p>
 <ul>
 <li>smaller</li>
 <li>more efficient use of battery power</li>
 <li>built in micro-usb port for programming/ tethered use</li>
+<li>BlueTooth support</li>
 </ul>
 
 <h3>Acknowledgements</h3>

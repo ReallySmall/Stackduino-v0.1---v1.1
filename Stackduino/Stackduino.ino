@@ -30,6 +30,7 @@ LiquidCrystal lcd(8, 9, 10, 11, 12, 13); //lcd pins
 #define ENC_B A1 //rotary encoder (15)
 #define ENC_PORT PINC //rotary encoder (a port not a pin)
 
+
 const byte main_button = 2;  //start/ stop stack button
 const byte encoder_button = 3; //select/ unselect menu item button
 const byte set_direction = 4; //stepper motor direction
@@ -166,19 +167,20 @@ void camera_process_images(){ /* SEND SIGNAL TO CAMERA TO TAKE PICTURE WITH DELA
     if(bracket > 1){ //if bracketing is enabled, print the current position in the bracket
       lcd.print("Bracketed image:");
       lcd.setCursor(0, 1);
-      lcd.print(bracket);
+      lcd.print(i);
       lcd.print(" of ");
       lcd.print(bracket);
       delay(1000);
       lcd.clear();
     }
+    
+    camera_shutter_signal(); //send a shutter signal
+       
     lcd.print("Pause for image");
     lcd.setCursor(0, 1);
     lcd.print("(");
-      lcd.print ((set_pause / 1000), DEC);
-      lcd.print(" seconds)");
-
-    camera_shutter_signal(); //send a shutter signal
+    lcd.print ((set_pause / 1000), DEC);
+    lcd.print(" seconds)");
 
     delay(set_pause); //pause to allow for camera to take picture and to allow flashes to recharge before next shot
 
@@ -189,6 +191,12 @@ void camera_process_images(){ /* SEND SIGNAL TO CAMERA TO TAKE PICTURE WITH DELA
 void camera_shutter_signal() { /* SEND SHUTTER SIGNAL */ 
   for (int i = 0; i < mirror_lockup; i++)
   {
+
+    if(mirror_lockup == 2 && i == 0){
+      lcd.clear();
+      lcd.print("Mirror up");
+    }
+
     digitalWrite(focus, HIGH); //trigger camera autofocus - camera may not take picture in some modes if this is not triggered first
     digitalWrite(shutter, HIGH); //trigger camera shutter
 
@@ -197,8 +205,9 @@ void camera_shutter_signal() { /* SEND SHUTTER SIGNAL */
     digitalWrite(shutter, LOW); //switch off camera trigger signal
     digitalWrite(focus, LOW); //switch off camera focus signal
 
-    if(mirror_lockup == 2){
+    if(mirror_lockup == 2 && i == 0){
       delay(2000); //sets the delay between mirror up and shutter
+      lcd.clear();
     }
   }
 }
@@ -672,7 +681,7 @@ void loop(){
 ////////////////////////////////////////////////////////////////////////////////////////////////////////*/  
 
       encoder_pos = 1; //set menu option display to first
-      update_screen = true; //and make sure it displays
+      update_screen = true; //allow the first menu item to be printed to the screen
       slice_counter = 0; //reset pic counter
       main_button_state = HIGH; //return to menu options
     } 

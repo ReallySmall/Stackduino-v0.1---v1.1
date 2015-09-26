@@ -617,10 +617,11 @@ void loop(){
         digitalWrite(set_direction, HIGH); //set the stepper direction for forward travel
         delay(100);
 
-        int i = 0; //counter for motor steps
-        while (i < slice_depth * 16 * unit_of_measure_multiplier && digitalRead(limit_switches) == HIGH){ //adjust the number in this statement to tune distance travelled on your setup. In this case 16 is a product of 8x microstepping and a 2:1 gearing ratio
+        for (int i = 0; i < slice_depth * 16 * unit_of_measure_multiplier; i++){ //adjust the number in this statement to tune distance travelled on your setup. In this case 16 is a product of 8x microstepping and a 2:1 gearing ratio
           stepper_step();
-          i++;
+          if(digitalRead(limit_switches) == LOW){
+            break;
+          }
         }
         i = 0; //reset counter
         stepper_disable();
@@ -634,6 +635,7 @@ void loop(){
           break;
         }
 
+        delay(0); //optionally set a delay to allow vibrations from stage movement to settle
         camera_process_images(); //send signal to camera to take picture(s)
 
         if (main_button_state == HIGH){ //if the Start/Stop stack button has been pressed, stop the stack even if not complete

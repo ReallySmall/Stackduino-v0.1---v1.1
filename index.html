@@ -33,78 +33,8 @@
 <h3>About</h3>
 <p>Stackduino is an Arduino compatible motion controller which interfaces with a stepper motor, limit switches and a camera shutter. It's designed to be simple to put together using cheap and widely available through-hole components.</p> 
 <p>The controller was developed primarily with focus stacking in mind - hence the name. However, with some tweaks to the code, it could also be used for any other application which involves moving a camera or subject and then taking a picture - e.g. 3d scanning, time-lapse, panorama stitching etc...</p>
-  <a href="http://www.flickr.com/photos/reallysmall/12253193595/" title="Stackduino v1.1 pcb by Really Small, on Flickr"><img src="http://farm6.staticflickr.com/5496/12253193595_44f5db900c_b.jpg"  style="border: 1px solid black; max-width: 100%" alt="Stackduino v1.1 pcb"></a>       
-<div style="background-color: white; padding: 5px; border: 1px solid grey; font-size: 80%; width: 100%;"><small>Stackduino v1 populated pcb, top and bottom views.</small></div>
-<p></p>	
- <a href="http://www.flickr.com/photos/reallysmall/10197425255/" title="Stackduino v1.1 pcb by Really Small, on Flickr"><img src="http://farm6.staticflickr.com/5502/10197425255_ebf1341e62_h.jpg"  style="border: 1px solid black; max-width: 100%" alt="Stackduino v1.1 pcb"></a>      
-<div style="background-color: white; padding: 5px; border: 1px solid grey; font-size: 80%; width: 100%;"><small>Stackduino v1 pcb layout, top and bottom views.</small></div>
-<p></p>		  
-<h3>Focus Stacking</h3>
-<p><a href="http://en.wikipedia.org/wiki/Focus_stacking">Focus stacking</a> is a technique commonly used in macro-photography which combines multiple images taken at different focus distances (often using some form of linear stage) to give a resulting image with a greater depth of field than any of the individual source images.</p>
-<a href="http://www.flickr.com/photos/reallysmall/8925700250/" title="Dagger Fly by Really Small, on Flickr"><img style="border: 1px solid black; max-width=100%;" src="http://farm4.staticflickr.com/3828/8925700250_7f0f9cd9f6_b.jpg" alt="Dagger Fly"></a>
-<div style="background-color: white; padding: 5px; border: 1px solid grey; font-size: 80%; width: 100%"><small>Example of a focus stacked image, made using Stackduino. Taken at 5x magnification, a composite of 150 incrementally focused images, 14 microns apart.</small></div>
-<p></p>
-<p>Focus stacking can be achieved manually by adjusting the linear stage to the next position, releasing the camera shutter and repeating. However, there are some drawbacks to stacking by hand:</p>
-<ul>
-<li>Adjusting the stage accurately by eye can be difficult and repeating that accuracy for every focus slice, even more so. Any slices which are too deep will create an out of focus band in the final image</li>
-<li>Touching the equipment introduces vibration and small movements which can adversely affect the final image</li>
-<li>Manual stacking accurately is time-consuming. If photographing a live subject the window of opportunity may be lost before the stack is complete</li>
-</ul>
-<p>Attaching a small stepper motor to the linear stage's actuator and controlling it electronically avoids these problems. Focus stacks become quicker, accurate and repeatable.</p>
-
-<a href="http://www.flickr.com/photos/reallysmall/5649044078/" title="Automated Macro Focus Stacking Setup by Really Small, on Flickr"><img src="http://farm6.staticflickr.com/5109/5649044078_0ddf5f36c2_z.jpg" style="max-width=100%;" alt="Automated Macro Focus Stacking Setup"></a>
-<div style="background-color: white; padding: 5px; border: 1px solid grey; font-size: 80%"><small>Example of a focus stacking setup with stepper motor (3) connected to linear stage (5) using a timing belt and pulleys (4). The junction box (6) connects the Stackduino controller to the stacker with a serial cable and breaks out the motor, limit switch and camera signals.</small></div>
-<p></p>
-<h3>Contents of the Repo</h3>
-
-<p>The Stackduino GitHub repository includes the gerber files required to produce a double-sided pcb, a parts list, and the code required to run the controller.</p>
-
-<h3>Current features:</h3>
-<ul>
-<li>Manual forward and backward control of the stepper motor to set up the stack</li>
-<li>Set step size</li>
-<li>Set number of steps</li>
-<li>Set pause time between steps</li>
-<li>Set number of images to take per step (for exposure bracketing if supported by camera)</li>
-<li>Supports mirror lockup - sends two, delay seperated shutter signals
-<li>Toggle whether stage returns to start position at end of stack</li>
-<li>Select unit of measurement for steps: microns, mm or cm</li>
-<li>Adjust speed of stepper motor</li>
-<li>Disable Easydriver when not stepping: runs a lot cooler and uses less energy. For best results the stacker mechanics should be able to hold exact position without the aid of motor torque</li>
-</ul>
-
-<h3>Notes on code</h3>
-<ul>
-<li>The code is developed in the Arduino IDE</li>
-<li>The required LiquidCrystal library should be included as standard in your Arduino install and compile automatically</li>
-</ul>
-
-<h3>Notes on hardware</h3>
-<h4>General</h4>
-<ul>
-<li>The pcb was designed in <a href="http://fritzing.org/">Fritzing</a></li>
-<li>The MCU is an ATMega 328 chip, flashed with the Arduino Uno bootloader. The board provides a pinout for programming the chip with a generic FT232RL USB > Serial Adapter</li>
-<li>To protect the camera, optocouplers electrically separate it from the controller</li>
-<li>Stepper driving is looked after by an <a href="http://www.schmalzhaus.com/EasyDriver/">Easydriver</a> board attached to the underside of the main pcb</li>
-<li><b>It's a pretty straightforward circuit, but you will be building it yourself and connecting it to your own expensive equipment, so usual disclaimers apply - test it thoroughly and use at your own risk</b></li>
-</ul>
-<h4>Power</h4>
-<ul>
-<li>Power requirements are largely dictated by the stepper driver and motor - aim for a dc adapter capable of supplying at least 1A at 12v</li>
-<li>Battery/ wall adapter power selection is done with a simple diode OR system. The supply with the highest voltage is the one that gets used, so to work as expected the battery voltage should be a little lower than the dc adapter's</li>
-</ul>
-<h3>Next steps</h3>
-<p>Tinkering has started on <a href="https://github.com/ReallySmall/Stackduino-2">Stackduino v2</a>. This will be largely based on SMD components and build on v1 with various additions and improvements:</p>
-<ul>
-<li>smaller</li>
-<li>more efficient use of battery power</li>
-<li>built in micro-usb port for programming/ tethered use</li>
-<li>BlueTooth support</li>
-</ul>
-
-<h3>Acknowledgements</h3>
-<p>Thanks in particular to Flickr users bert01980 and nsomniius for bug reports and input on development. Various prototyping images and discussion are available on <a href="http://www.flickr.com/photos/reallysmall/sets/72157632341602394/with/10761814804/">Flickr</a>.</p>
-        </section>
+  
+          <p><strong>Please visit the project site for more information: <a href="http://www.stackduino.net/">www.stackduino.net/</a></strong></p>
 
         <footer>
           Stackduino is maintained by <a href="https://github.com/ReallySmall">ReallySmall</a><br>

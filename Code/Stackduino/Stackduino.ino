@@ -617,13 +617,13 @@ void loop(){
         digitalWrite(set_direction, HIGH); //set the stepper direction for forward travel
         delay(100);
 
-        for (int i = 0; i < slice_depth * 16 * unit_of_measure_multiplier; i++){ //adjust the number in this statement to tune distance travelled on your setup. In this case 16 is a product of 8x microstepping and a 2:1 gearing ratio
+        for (int j = 0; j < slice_depth * 16 * unit_of_measure_multiplier; j++){ //adjust the number in this statement to tune distance travelled on your setup. In this case 16 is a product of 8x microstepping and a 2:1 gearing ratio
           stepper_step();
           if(digitalRead(limit_switches) == LOW){
             break;
           }
         }
-        i = 0; //reset counter
+
         stepper_disable();
 
         if (digitalRead(limit_switches) == LOW){ //stop motor and reverse if limit switch hit
@@ -642,10 +642,11 @@ void loop(){
           break;
         }
       } 
-        lcd.setCursor(0, 0);
-        lcd.print("Stack finished");
-        delay(2000);
-        lcd.clear(); 
+      
+      lcd.setCursor(0, 0);
+      lcd.print("Stack finished");
+      delay(2000);
+      lcd.clear(); 
 
 /*////////////////////////////////////////////////////////////////////////////////////////////////////////
 //  IF ENABLED, AT END OF STACK RETURN TO START POSITION                                                //      
@@ -662,12 +663,12 @@ void loop(){
 
         stepper_enable();
 
-        int i = 0; //counter for motor steps
-        while (i < returnSteps * 16 * unit_of_measure_multiplier && digitalRead(limit_switches) == HIGH){
+        int k = 0; //counter for motor steps
+        while (k < returnSteps * 16 * unit_of_measure_multiplier && digitalRead(limit_switches) == HIGH){
           stepper_step();
-          i++;
+          k++;
         }
-        i = 0; //reset counter
+        k = 0; //reset counter
 
         stepper_disable();
 
@@ -676,6 +677,7 @@ void loop(){
         }  
 
         lcd.clear();
+        
       }
 
 /*////////////////////////////////////////////////////////////////////////////////////////////////////////
